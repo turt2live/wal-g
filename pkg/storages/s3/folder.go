@@ -149,6 +149,12 @@ func (folder *Folder) ListFolder() (objects []storage.Object, subFolders []stora
 		err = folder.listObjectsPagesV2(prefix, delimiter, listFunc)
 	}
 
+	// DigitalOcean Spaces compatibility: DO's API complains about NoSuchKey when trying to list folders
+	// which don't yet exist.
+	if isAwsNotExist(err) {
+		return objects, subFolders, nil
+	}
+
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to list s3 folder: '%s'", folder.path)
 	}
